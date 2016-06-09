@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">NanoApp</string>
+    <string name="btnLocationServicesName">Location Services</string>
+</resources>
