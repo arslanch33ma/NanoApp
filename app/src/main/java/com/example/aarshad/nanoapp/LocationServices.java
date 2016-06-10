@@ -81,6 +81,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             });
 
         }
+        else {
+            btnSendLocation.setVisibility(View.VISIBLE);
+        }
 
 
     }
