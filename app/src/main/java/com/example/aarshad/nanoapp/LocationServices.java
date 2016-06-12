@@ -1,13 +1,23 @@
 package com.example.aarshad.nanoapp;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.firebase.client.Firebase;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -16,13 +26,29 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
+import java.text.DateFormat;
+import java.util.TimeZone;
+import java.util.Date;
 
 public class LocationServices extends AppCompatActivity implements OnMapReadyCallback {
+
+    Firebase baseURL ;
+    Firebase fRef ;
+    Firebase messagesRef  ;
+
+    LocationManager locationManager;
+    LocationListener locationListener;
+
 
     Button btnSendLocation  ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Firebase.setAndroidContext(this);
+        fRef = new Firebase("https://torrid-inferno-2386.firebaseio.com/List");
+        messagesRef = fRef.child("messages");
 
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
 
@@ -32,6 +58,46 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+
+            // called when location is updated
+            @Override
+            public void onLocationChanged(Location location) {
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+1:00"));
+                Date currentLocalTime = cal.getTime();
+                DateFormat date = new SimpleDateFormat("HH:mm");
+
+                date.setTimeZone(TimeZone.getTimeZone("GMT+1:00"));
+
+                String localTime = date.format(currentLocalTime);
+
+               Toast.makeText(getApplicationContext(),  "OnLocationChange: " + location.getLatitude(), Toast.LENGTH_SHORT).show();
+                messagesRef.child("User1").child(localTime.toString()).setValue(location.getLatitude() + " " + location.getLongitude());
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            // called if GPS is OFF
+            @Override
+            public void onProviderDisabled(String provider) {
+
+                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(i);
+
+            }
+        };
+
     }
 
     @Override
@@ -79,12 +145,44 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
                 }
             });
-
         }
         else {
             btnSendLocation.setVisibility(View.VISIBLE);
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 10:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    configureButton();
+                    return;
+                }
+        }
+    }
+    private void configureButton() {
+        locationManager.requestLocationUpdates("gps", 15000, 0, locationListener);
+    }
+
+    public void startSendLocations (View view){
+        Toast.makeText(this,"In Functions",Toast.LENGTH_SHORT).show();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.INTERNET
+                }, 10);
+                return;
+            }
+        } else
+        {
+            configureButton();
+        }
 
     }
 

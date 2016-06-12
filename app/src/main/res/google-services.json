@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "776655281537",
+    "firebase_url": "https://nanoapp-b67c9.firebaseio.com",
+    "project_id": "nanoapp-b67c9",
+    "storage_bucket": "nanoapp-b67c9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:776655281537:android:179511184a590d56",
+        "android_client_info": {
+          "package_name": "com.example.aarshad.nanoapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "776655281537-qfqvcvvdpk406adjrjv2pkkqpls28i3v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxFdYApgGqtPqPHl4V1QGuvwcrYftnHrI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
