@@ -47,7 +47,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Firebase.setAndroidContext(this);
-        fRef = new Firebase("https://torrid-inferno-2386.firebaseio.com/List");
+        fRef = new Firebase("https://nanoapp-9233b.firebaseio.com/");
         messagesRef = fRef.child("messages");
 
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
@@ -65,11 +65,11 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             // called when location is updated
             @Override
             public void onLocationChanged(Location location) {
-                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+1:00"));
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9:00"));
                 Date currentLocalTime = cal.getTime();
                 DateFormat date = new SimpleDateFormat("HH:mm");
 
-                date.setTimeZone(TimeZone.getTimeZone("GMT+1:00"));
+                date.setTimeZone(TimeZone.getTimeZone("GMT+9:00"));
 
                 String localTime = date.format(currentLocalTime);
 
@@ -163,7 +163,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         }
     }
     private void configureButton() {
-        locationManager.requestLocationUpdates("gps", 15000, 0, locationListener);
+        locationManager.requestLocationUpdates("gps", 10000, 0, locationListener);
     }
 
     public void startSendLocations (View view){
