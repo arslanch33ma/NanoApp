@@ -3,6 +3,7 @@ package com.example.aarshad.nanoapp;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -35,15 +36,18 @@ import java.util.Date;
 
 public class LocationServices extends AppCompatActivity implements OnMapReadyCallback {
 
-    Firebase baseURL ;
     Firebase fRef ;
     Firebase messagesRef  ;
 
     LocationManager locationManager;
     LocationListener locationListener;
 
-
     Button btnSendLocation  ;
+
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String userID = "userEmail";
+    SharedPreferences sharedpreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Firebase.setAndroidContext(this);
@@ -137,6 +141,10 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 @Override
                 public void onFinish() {
                     btnSendLocation.setVisibility(View.VISIBLE);
+                    sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
+                    if (sharedpreferences.contains(userID)){
+                        Toast.makeText(getApplicationContext(),"User ID: " + sharedpreferences.getString(userID,"Default"),Toast.LENGTH_SHORT).show();
+                    }
 
                 }
 
