@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.overflow_menu,menu);
+
         return true;
     }
 
@@ -63,6 +64,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         Intent locationServicesIntent = new Intent(this,LocationServices.class);
         startActivity(locationServicesIntent);
 
+    }
+    public void customLocationServices(View view){
+        Intent customlocIntent = new Intent(this,CustomLocationServices.class);
+        startActivity(customlocIntent);
     }
 
     @Override

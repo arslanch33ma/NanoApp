@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "1053012400496-ede8p22rek4s5o0ifgauk41gdfcjilde.apps.googleusercontent.com",
+          "client_id": "1053012400496-085mf1dn8c4sovhfcr0d1b6kjhooe3ab.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.aarshad.nanoapp",
-            "certificate_hash": "0272FBEE587F4CB6D9D3B776FA460E799E462F1B"
+            "certificate_hash": "CFEC93C20EAF9D3F1CC9F3AF8EA21C1F2344A44C"
           }
         },
         {

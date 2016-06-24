@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
         android:name=".NanoApp"
@@ -18,7 +20,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB-85xc-FXh6X76DvnUNsA3De0piUUWcvs" />
 
-        <activity android:name=".Authentication">
+        <activity android:name=".Authentication" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -26,13 +28,12 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait">
-
-        </activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".LocationServices"
             android:screenOrientation="portrait" />
+        <activity android:name=".CustomLocationServices" />
 
-    </application>
+         </application>
 
 </manifest>

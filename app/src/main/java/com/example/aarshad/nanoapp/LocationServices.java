@@ -16,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.SimpleDateFormat;
@@ -34,25 +36,33 @@ import java.text.DateFormat;
 import java.util.TimeZone;
 import java.util.Date;
 
-public class LocationServices extends AppCompatActivity implements OnMapReadyCallback {
+public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter {
 
     Firebase fRef ;
-    Firebase messagesRef  ;
+    Firebase locationRef  ;
 
     LocationManager locationManager;
     LocationListener locationListener;
+    String signedInID ;
 
+    GoogleMap gMap;
     Button btnSendLocation  ;
+    View view ;
+    TextView tvLat ;
+    TextView tvLng ;
+    TextView tvMarkerID ;
+    String markerID ;
 
-    public static final String MyPREFERENCES = "MyPrefs" ;
-    public static final String userID = "userEmail";
+    public static final String MyPREFERENCES = "PREF" ;
+    public static final String userID = "UserID";
+
     SharedPreferences sharedpreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Firebase.setAndroidContext(this);
-        fRef = new Firebase("https://nanoapp-9233b.firebaseio.com/");
-        messagesRef = fRef.child("messages");
+        fRef = new Firebase("https://scorching-heat-2364.firebaseio.com/");
+        locationRef = fRef.child("locations");
 
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
 
@@ -62,6 +72,14 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
+
+        view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
+        tvLat = (TextView) view.findViewById(R.id.tv_lat);
+        tvLng = (TextView) view.findViewById(R.id.tv_lng);
+        tvMarkerID = (TextView) view.findViewById(R.id.tvMarkerID);
+
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
@@ -77,8 +95,24 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
                 String localTime = date.format(currentLocalTime);
 
-               Toast.makeText(getApplicationContext(),  "OnLocationChange: " + location.getLatitude(), Toast.LENGTH_SHORT).show();
-                messagesRef.child("User1").child(localTime.toString()).setValue(location.getLatitude() + " " + location.getLongitude());
+                LatLng ltlng = new LatLng(location.getLatitude(),location.getLongitude());
+
+                Long tsLong = System.currentTimeMillis();
+                String ts = tsLong.toString();
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(ltlng).snippet(ts);
+
+                Marker marker = gMap.addMarker(markerOptions);
+                marker.setDraggable(true);
+                marker.showInfoWindow();
+
+                markerID = marker.getSnippet() ;
+
+                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Lat").setValue(ltlng.latitude);
+                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Lng").setValue(ltlng.longitude);
+                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Time").setValue(localTime.toString());
+                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Timestamp").setValue(Long.parseLong(markerID));
+
 
             }
 
@@ -107,6 +141,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap map) {
 
+        gMap = map ;
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
         LocationManager lm = (LocationManager) getSystemService(
                 Context.LOCATION_SERVICE);
@@ -130,21 +165,17 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
 
         if (pLtLng!=null) {
-            map.addMarker(new MarkerOptions().position(pLtLng).title("Marker"));
+            gMap.addMarker(new MarkerOptions().position(pLtLng).title("Marker"));
             final CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(pLtLng)      // Sets the center of the map to Mountain View
                     .zoom(13)                   // Sets the zoom
                     .bearing(90)                // Sets the orientation of the camera to east
                     .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                     .build();
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(3500, 1), new GoogleMap.CancelableCallback() {
+            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(3500, 1), new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
                     btnSendLocation.setVisibility(View.VISIBLE);
-                    sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
-                    if (sharedpreferences.contains(userID)){
-                        Toast.makeText(getApplicationContext(),"User ID: " + sharedpreferences.getString(userID,"Default"),Toast.LENGTH_SHORT).show();
-                    }
 
                 }
 
@@ -171,11 +202,16 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         }
     }
     private void configureButton() {
-        locationManager.requestLocationUpdates("gps", 10000, 0, locationListener);
+        locationManager.requestLocationUpdates("gps", 3000, 1, locationListener);
     }
 
     public void startSendLocations (View view){
-        Toast.makeText(this,"In Functions",Toast.LENGTH_SHORT).show();
+
+        signedInID = sharedpreferences.getString(userID,"");
+        Toast.makeText(this,"Stored ID: " + signedInID ,Toast.LENGTH_SHORT).show();
+        if (sharedpreferences.contains(userID)){
+
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
@@ -194,4 +230,19 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     }
 
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        LatLng latLng = marker.getPosition();
+
+        tvLat.setText("Lat: " +  latLng.latitude);
+        tvLng.setText("Lng: " + latLng.longitude);
+        tvMarkerID.setText("ID:" + marker.getId());
+
+        return view;
+    }
 }
