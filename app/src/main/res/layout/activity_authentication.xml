@@ -17,19 +17,9 @@
             android:layout_width="match_parent"
             android:layout_height="240dp"
             android:src="@drawable/logo"
+            android:layout_marginTop="30dp"
             />
 
-        <TextView
-            android:id="@+id/status"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:text="@string/signed_out" />
-
-        <TextView
-            android:id="@+id/detail"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            tools:text="Firebase User ID: 123456789abc" />
 
         <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
@@ -40,21 +30,7 @@
             tools:visibility="gone" />
 
 
-        <Button
-            android:id="@+id/sign_out_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            android:text="@string/sign_out" />
-
-
     </LinearLayout>
-
-
-
-
-
-
 
 
 </RelativeLayout>

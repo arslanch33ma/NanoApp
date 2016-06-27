@@ -1,34 +1,55 @@
 package com.example.aarshad.nanoapp;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -46,13 +67,33 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     String signedInID ;
 
     GoogleMap gMap;
+    Marker currentMarker ;
+    Marker previousMarker ;
+
     Button btnSendLocation  ;
+    Button btnStopLocation ;
     View view ;
     TextView tvLat ;
     TextView tvLng ;
     TextView tvMarkerID ;
     String markerID ;
 
+    Long tsLong;
+    String timeString;
+
+    Calendar cal ;
+    Date currentLocalTime ;
+    DateFormat date ;
+    String localTime ;
+
+    File destination;
+    String imagePath;
+    FirebaseStorage storage ;
+    StorageReference storageRef ;
+    Bitmap bitmapObj = null;
+    Bitmap resizedBitmapImg ;
+
+    private static final int REQUEST_IMAGE = 100;
     public static final String MyPREFERENCES = "PREF" ;
     public static final String userID = "UserID";
 
@@ -60,11 +101,13 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         Firebase.setAndroidContext(this);
         fRef = new Firebase("https://scorching-heat-2364.firebaseio.com/");
         locationRef = fRef.child("locations");
 
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
+        btnStopLocation = (Button) findViewById(R.id.btnStopLocation);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_services);
@@ -80,6 +123,13 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         tvLng = (TextView) view.findViewById(R.id.tv_lng);
         tvMarkerID = (TextView) view.findViewById(R.id.tvMarkerID);
 
+        tsLong = System.currentTimeMillis();
+        timeString = tsLong.toString();
+
+        destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
+
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReferenceFromUrl("gs://nanoapp-9233b.appspot.com");
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
@@ -97,22 +147,42 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
                 LatLng ltlng = new LatLng(location.getLatitude(),location.getLongitude());
 
-                Long tsLong = System.currentTimeMillis();
-                String ts = tsLong.toString();
+                tsLong = System.currentTimeMillis();
+                timeString = tsLong.toString();
+
                 MarkerOptions markerOptions = new MarkerOptions();
-                markerOptions.position(ltlng).snippet(ts);
+                markerOptions.position(ltlng).snippet(timeString);
 
                 Marker marker = gMap.addMarker(markerOptions);
                 marker.setDraggable(true);
                 marker.showInfoWindow();
 
-                markerID = marker.getSnippet() ;
+                currentMarker = marker;
 
-                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Lat").setValue(ltlng.latitude);
-                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Lng").setValue(ltlng.longitude);
-                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Time").setValue(localTime.toString());
-                locationRef.child(signedInID).child(String.valueOf(markerID)).child("Timestamp").setValue(Long.parseLong(markerID));
+                gMap.addPolyline(new PolylineOptions()
+                        .add(new LatLng(previousMarker.getPosition().latitude, previousMarker.getPosition().longitude),
+                                new LatLng(currentMarker.getPosition().latitude, currentMarker.getPosition().longitude))
+                        .width(5)
+                        .color(Color.RED).geodesic(true));
 
+                previousMarker = currentMarker ;
+
+                notifyFirebase(ltlng, marker.getSnippet());
+
+
+            }
+            private void notifyFirebase(LatLng latLng , String mID) {
+
+                cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9:00"));
+                currentLocalTime = cal.getTime();
+                date = new SimpleDateFormat("HH:mm:ss");
+                date.setTimeZone(TimeZone.getTimeZone("GMT+9:00"));
+                localTime = date.format(currentLocalTime);
+
+                locationRef.child(signedInID).child(mID).child("Lat").setValue(latLng.latitude);
+                locationRef.child(signedInID).child(mID).child("Lng").setValue(latLng.longitude);
+                locationRef.child(signedInID).child(mID).child("Time").setValue(localTime.toString());
+                locationRef.child(signedInID).child(mID).child("Timestamp").setValue(Long.parseLong(mID));
 
             }
 
@@ -139,10 +209,80 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.overflow_menu,menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_camera:
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(destination));
+                startActivityForResult(intent, REQUEST_IMAGE);
+                break;
+
+        }
+        return true ;
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if( requestCode == REQUEST_IMAGE && resultCode == Activity.RESULT_OK ){
+
+            try {
+
+                imagePath = destination.getAbsolutePath();
+                Uri file = Uri.fromFile(new File(imagePath));
+                UploadTask uploadTask ;
+
+                StorageReference imagesRef = storageRef.child("images/"+currentMarker.getSnippet()+".jpg");
+
+                // Scaling down the taken picture in order to show on Google Map.
+                bitmapObj = BitmapFactory.decodeFile(imagePath);
+                resizedBitmapImg = Bitmap.createScaledBitmap(bitmapObj, 100, 100, false);
+                // Setting the Bitmap to Marker Icon
+                currentMarker.setIcon(BitmapDescriptorFactory.fromBitmap(resizedBitmapImg));
+
+                addPicUrl(currentMarker);
+
+                // Uploading original file to firebase storage
+                uploadTask = imagesRef.putFile(file);
+
+                uploadTask.addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle unsuccessful uploads
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        // Toast.makeText(getApplicationContext(), "Uri: " + downloadUrl,Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Image Uploaded !",Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+        else{
+            Log.v("NanoApp","Request cancelled");
+        }
+    }
+    private void addPicUrl ( Marker marker) {
+        locationRef.child(signedInID).child(String.valueOf(marker.getSnippet())).child("Img:").setValue("images/"+marker.getSnippet()+".jpg");
+    }
+
+    @Override
     public void onMapReady(GoogleMap map) {
 
         gMap = map ;
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
+        btnStopLocation = (Button) findViewById(R.id.btnStopLocation);
         LocationManager lm = (LocationManager) getSystemService(
                 Context.LOCATION_SERVICE);
         List<String> providers = lm.getProviders(true);
@@ -165,7 +305,14 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
 
         if (pLtLng!=null) {
-            gMap.addMarker(new MarkerOptions().position(pLtLng).title("Marker"));
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.position(pLtLng).snippet(timeString);
+
+            Marker marker = gMap.addMarker(markerOptions);
+            marker.setDraggable(true);
+
+            previousMarker = marker ;
+
             final CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(pLtLng)      // Sets the center of the map to Mountain View
                     .zoom(13)                   // Sets the zoom
@@ -176,7 +323,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 @Override
                 public void onFinish() {
                     btnSendLocation.setVisibility(View.VISIBLE);
-
+                    btnStopLocation.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -202,7 +349,8 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         }
     }
     private void configureButton() {
-        locationManager.requestLocationUpdates("gps", 3000, 1, locationListener);
+        locationManager.requestLocationUpdates("gps", 20000, 1, locationListener);
+
     }
 
     public void startSendLocations (View view){
@@ -228,6 +376,10 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             configureButton();
         }
 
+    }
+    public void stopSendLocations (View view){
+        locationManager.removeUpdates(locationListener);
+        Toast.makeText(this,"Location Updates Stopped", Toast.LENGTH_SHORT);
     }
 
     @Override

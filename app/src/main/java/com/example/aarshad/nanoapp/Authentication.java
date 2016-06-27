@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
@@ -33,57 +32,40 @@ public class Authentication extends AppCompatActivity implements
     private static final String TAG = "GoogleActivity";
     private static final int RC_SIGN_IN = 9001;
 
-    // [START declare_auth]
     private FirebaseAuth mAuth;
-    // [END declare_auth]
 
-
-
-    // [START declare_auth_listener]
     private FirebaseAuth.AuthStateListener mAuthListener;
-    // [END declare_auth_listener]
 
     SharedPreferences preferences;
     SharedPreferences.Editor editor ;
 
     private GoogleApiClient mGoogleApiClient;
-    private TextView mStatusTextView;
-    private TextView mDetailTextView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authentication);
 
-        // Views
-        mStatusTextView = (TextView) findViewById(R.id.status);
-        mDetailTextView = (TextView) findViewById(R.id.detail);
 
-        // Button listeners
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
 
         preferences = getSharedPreferences("PREF", Context.MODE_PRIVATE);
         editor = preferences.edit();
 
-        // [START config_signin]
-        // Configure Google Sign In
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-        // [END config_signin]
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-        // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
-        // [END initialize_auth]
 
-        // [START auth_state_listener]
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -98,15 +80,19 @@ public class Authentication extends AppCompatActivity implements
                     // User is signed out
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
-                // [START_EXCLUDE]
+
                 updateUI(user);
-                // [END_EXCLUDE]
+
             }
         };
-        // [END auth_state_listener]
+
     }
 
-    // [START on_start_add_listener]
+    @Override
+    public void onBackPressed() {
+
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -118,9 +104,7 @@ public class Authentication extends AppCompatActivity implements
         super.onResume();
         mAuth.signOut();
     }
-    // [END on_start_add_listener]
 
-    // [START on_stop_remove_listener]
     @Override
     public void onStop() {
         super.onStop();
@@ -128,13 +112,10 @@ public class Authentication extends AppCompatActivity implements
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }
-    // [END on_stop_remove_listener]
 
-    // [START onactivityresult]
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -145,16 +126,13 @@ public class Authentication extends AppCompatActivity implements
                 firebaseAuthWithGoogle(account);
 
             } else {
-                // Google Sign In failed, update UI appropriately
-                // [START_EXCLUDE]
+                // Google Sign In failed, update things appropriately
                 updateUI(null);
-                // [END_EXCLUDE]
+
             }
         }
     }
-    // [END onactivityresult]
 
-    // [START auth_with_google]
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
@@ -173,20 +151,17 @@ public class Authentication extends AppCompatActivity implements
                             Toast.makeText(Authentication.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
-                        // [START_EXCLUDE]
-                        //hideProgressDialog();
-                        // [END_EXCLUDE]
+
                     }
                 });
     }
-    // [END auth_with_google]
 
-    // [START signin]
+
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-    // [END signin]
+
 
     private void signOut() {
         // Firebase sign out
@@ -218,8 +193,6 @@ public class Authentication extends AppCompatActivity implements
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            mStatusTextView.setText(user.getEmail());
-            mDetailTextView.setText(user.getUid());
 
             Toast.makeText(this, "UserID: " + user.getUid(), Toast.LENGTH_SHORT).show();
             editor.putString("UserID", user.getUid());
@@ -227,14 +200,8 @@ public class Authentication extends AppCompatActivity implements
             Intent mainActivity = new Intent(this,MainActivity.class);
             startActivity(mainActivity);
 
-            //findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
         } else {
-            mStatusTextView.setText(R.string.signed_out);
-            mDetailTextView.setText(null);
 
-            //findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            //findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
         }
     }
 
@@ -252,9 +219,6 @@ public class Authentication extends AppCompatActivity implements
         switch (v.getId()) {
             case R.id.sign_in_button:
                 signIn();
-                break;
-            case R.id.sign_out_button:
-                signOut();
                 break;
 
         }

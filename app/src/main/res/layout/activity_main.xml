@@ -18,7 +18,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="240dp"
-            android:src="@drawable/logo"
+            android:src="@drawable/google_maps"
             />
 
         <Button
