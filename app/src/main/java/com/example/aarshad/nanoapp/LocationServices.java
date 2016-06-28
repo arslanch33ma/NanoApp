@@ -57,7 +57,8 @@ import java.text.DateFormat;
 import java.util.TimeZone;
 import java.util.Date;
 
-public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter {
+
+public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener {
 
     Firebase fRef ;
     Firebase locationRef  ;
@@ -96,6 +97,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     private static final int REQUEST_IMAGE = 100;
     public static final String MyPREFERENCES = "PREF" ;
     public static final String userID = "UserID";
+    public static final String TAG = "NanoApp";
 
     SharedPreferences sharedpreferences;
 
@@ -117,6 +119,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         mapFragment.getMapAsync(this);
 
         sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
+        signedInID = sharedpreferences.getString(userID,"");
 
         view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
         tvLat = (TextView) view.findViewById(R.id.tv_lat);
@@ -179,10 +182,11 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 date.setTimeZone(TimeZone.getTimeZone("GMT+9:00"));
                 localTime = date.format(currentLocalTime);
 
-                locationRef.child(signedInID).child(mID).child("Lat").setValue(latLng.latitude);
-                locationRef.child(signedInID).child(mID).child("Lng").setValue(latLng.longitude);
-                locationRef.child(signedInID).child(mID).child("Time").setValue(localTime.toString());
-                locationRef.child(signedInID).child(mID).child("Timestamp").setValue(Long.parseLong(mID));
+                locationRef.child(signedInID+"_"+mID).child("Lat").setValue(latLng.latitude);
+                locationRef.child(signedInID+"_"+mID).child("Lng").setValue(latLng.longitude);
+                locationRef.child(signedInID+"_"+mID).child("Time").setValue(localTime.toString());
+                locationRef.child(signedInID+"_"+mID).child("Timestamp").setValue(Long.parseLong(mID));
+                locationRef.child(signedInID+"_"+mID).child("Uid").setValue(signedInID);
 
             }
 
@@ -245,23 +249,25 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
                 addPicUrl(currentMarker);
 
+                Log.v(TAG,"Image Uploaded");
                 // Uploading original file to firebase storage
-                uploadTask = imagesRef.putFile(file);
-
-                uploadTask.addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        // Handle unsuccessful uploads
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        // Toast.makeText(getApplicationContext(), "Uri: " + downloadUrl,Toast.LENGTH_LONG).show();
-                        Toast.makeText(getApplicationContext(), "Image Uploaded !",Toast.LENGTH_LONG).show();
-                    }
-                });
+//                uploadTask = imagesRef.putFile(file);
+//
+//                uploadTask.addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception exception) {
+//                        // Handle unsuccessful uploads
+//                    }
+//                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+//                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+//                        // Toast.makeText(getApplicationContext(), "Uri: " + downloadUrl,Toast.LENGTH_LONG).show();
+//                        Toast.makeText(getApplicationContext(), "Image Uploaded !",Toast.LENGTH_LONG).show();
+//                        Log.v(TAG,"Image Uploaded");
+//                    }
+//                });
 
 
             } catch (Exception e) {
@@ -270,11 +276,11 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
         }
         else{
-            Log.v("NanoApp","Request cancelled");
+            Log.v(TAG,"Request cancelled");
         }
     }
     private void addPicUrl ( Marker marker) {
-        locationRef.child(signedInID).child(String.valueOf(marker.getSnippet())).child("Img:").setValue("images/"+marker.getSnippet()+".jpg");
+        locationRef.child(signedInID+"_"+marker.getSnippet()).child("Image").setValue("images/"+marker.getSnippet()+".jpg");
     }
 
     @Override
@@ -283,6 +289,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         gMap = map ;
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
         btnStopLocation = (Button) findViewById(R.id.btnStopLocation);
+
+        gMap.setOnMarkerClickListener(this);
+
         LocationManager lm = (LocationManager) getSystemService(
                 Context.LOCATION_SERVICE);
         List<String> providers = lm.getProviders(true);
@@ -310,6 +319,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
             Marker marker = gMap.addMarker(markerOptions);
             marker.setDraggable(true);
+            marker.showInfoWindow();
 
             previousMarker = marker ;
 
@@ -355,11 +365,6 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     public void startSendLocations (View view){
 
-        signedInID = sharedpreferences.getString(userID,"");
-        Toast.makeText(this,"Stored ID: " + signedInID ,Toast.LENGTH_SHORT).show();
-        if (sharedpreferences.contains(userID)){
-
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
@@ -396,5 +401,13 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         tvMarkerID.setText("ID:" + marker.getId());
 
         return view;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+
+        marker.showInfoWindow();
+
+        return false;
     }
 }

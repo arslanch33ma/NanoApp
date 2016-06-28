@@ -51,7 +51,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class CustomLocationServices extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleMap.OnMarkerDragListener,
+       // GoogleMap.OnMarkerDragListener,
         GoogleMap.OnMapLongClickListener, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     Firebase fRef ;
@@ -142,6 +142,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         marker.setDraggable(true);
         marker.showInfoWindow();
 
+
         previousMarker = marker ;
 
         final CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -152,35 +153,36 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 .build();
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(1000, 1),null);
 
-        map.setOnMarkerDragListener(this);
+        //map.setOnMarkerDragListener(this);
         map.setOnMapLongClickListener(this);
         map.setInfoWindowAdapter(this);
         map.setOnMarkerClickListener(this);
 
     }
 
-    @Override
-    public void onMarkerDragStart(Marker marker) {
-
-    }
-
-    @Override
-    public void onMarkerDrag(Marker marker) {
-
-    }
-
-    @Override
-    public void onMarkerDragEnd(Marker marker) {
-
-        LatLng ltlng = marker.getPosition();
-        marker.hideInfoWindow();
-        marker.showInfoWindow();
-
-        notifyFirebase(ltlng,marker.getSnippet());
-
-        Toast.makeText(this,"Started Ended " + marker.getPosition() ,Toast.LENGTH_SHORT).show();
-
-    }
+//    @Override
+//    public void onMarkerDragStart(Marker marker) {
+//
+//    }
+//
+//    @Override
+//    public void onMarkerDrag(Marker marker) {
+//
+//    }
+//
+//    @Override
+//    public void onMarkerDragEnd(Marker marker) {
+//
+//        LatLng ltlng = marker.getPosition();
+//        marker.hideInfoWindow();
+//        marker.showInfoWindow();
+//
+//        currentMarker = marker ;
+//        notifyFirebase(ltlng,marker.getSnippet());
+//
+//        Toast.makeText(this,"Started Ended " + marker.getPosition() ,Toast.LENGTH_SHORT).show();
+//
+//    }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
@@ -195,6 +197,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         marker.setDraggable(true);
         marker.showInfoWindow();
 
+
         currentMarker = marker;
 
         map.addPolyline(new PolylineOptions()
@@ -208,6 +211,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
     }
 
+
     private void notifyFirebase(LatLng latLng , String mID) {
 
         cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9:00"));
@@ -216,14 +220,15 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         date.setTimeZone(TimeZone.getTimeZone("GMT+9:00"));
         localTime = date.format(currentLocalTime);
 
-        locationRef.child(signedInID).child(mID).child("Lat").setValue(latLng.latitude);
-        locationRef.child(signedInID).child(mID).child("Lng").setValue(latLng.longitude);
-        locationRef.child(signedInID).child(mID).child("Time").setValue(localTime.toString());
-        locationRef.child(signedInID).child(mID).child("Timestamp").setValue(Long.parseLong(mID));
+        locationRef.child(signedInID+"_"+mID).child("Lat").setValue(latLng.latitude);
+        locationRef.child(signedInID+"_"+mID).child("Lng").setValue(latLng.longitude);
+        locationRef.child(signedInID+"_"+mID).child("Time").setValue(localTime.toString());
+        locationRef.child(signedInID+"_"+mID).child("Timestamp").setValue(Long.parseLong(mID));
+        locationRef.child(signedInID+"_"+mID).child("Uid").setValue(signedInID);
 
     }
     private void addPicUrl ( Marker marker) {
-        locationRef.child(signedInID).child(String.valueOf(marker.getSnippet())).child("Img:").setValue("images/"+marker.getSnippet()+".jpg");
+        locationRef.child(signedInID+"_"+marker.getSnippet()).child("Image").setValue("images/"+marker.getSnippet()+".jpg");
     }
 
 
