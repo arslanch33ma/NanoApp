@@ -10,7 +10,6 @@
     tools:context="com.example.aarshad.nanoapp.LocationServices">
 
 
-
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/map"
         android:layout_width="match_parent"
@@ -20,7 +19,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="bottom"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="7dp"
         >
         <Button
             android:id="@+id/btnSendLocation"

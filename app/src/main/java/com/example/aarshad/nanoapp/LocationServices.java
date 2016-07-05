@@ -30,9 +30,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -50,12 +47,12 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
-import java.text.DateFormat;
-import java.util.TimeZone;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 
 public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener {
@@ -140,13 +137,6 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             // called when location is updated
             @Override
             public void onLocationChanged(Location location) {
-                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9:00"));
-                Date currentLocalTime = cal.getTime();
-                DateFormat date = new SimpleDateFormat("HH:mm");
-
-                date.setTimeZone(TimeZone.getTimeZone("GMT+9:00"));
-
-                String localTime = date.format(currentLocalTime);
 
                 LatLng ltlng = new LatLng(location.getLatitude(),location.getLongitude());
 
@@ -171,7 +161,6 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 previousMarker = currentMarker ;
 
                 notifyFirebase(ltlng, marker.getSnippet());
-
 
             }
             private void notifyFirebase(LatLng latLng , String mID) {
@@ -203,6 +192,8 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             // called if GPS is OFF
             @Override
             public void onProviderDisabled(String provider) {
+
+                Toast.makeText(LocationServices.this,"GPS is turned off ... ",Toast.LENGTH_LONG).show();
 
                 Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(i);
@@ -329,7 +320,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                     .bearing(90)                // Sets the orientation of the camera to east
                     .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                     .build();
-            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(3500, 1), new GoogleMap.CancelableCallback() {
+            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(2500, 1), new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
                     btnSendLocation.setVisibility(View.VISIBLE);
@@ -344,6 +335,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         }
         else {
             btnSendLocation.setVisibility(View.VISIBLE);
+            btnStopLocation.setVisibility(View.VISIBLE);
         }
 
     }
@@ -353,12 +345,13 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         switch (requestCode){
             case 10:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    configureButton();
-                    return;
+                    sendUpdates();
+
                 }
         }
     }
-    private void configureButton() {
+    private void sendUpdates() {
+        Toast.makeText(LocationServices.this,"Looking for GPS Signals ... ",Toast.LENGTH_LONG).show();
         locationManager.requestLocationUpdates("gps", 20000, 1, locationListener);
 
     }
@@ -369,22 +362,30 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Requesting Permissions");
                 requestPermissions(new String[]{
                         Manifest.permission.ACCESS_FINE_LOCATION,
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.INTERNET
                 }, 10);
-                return;
+
             }
+            else
+            {
+                sendUpdates();
+            }
+
         } else
         {
-            configureButton();
+            Log.v(TAG," Version is less than " + Build.VERSION_CODES.M);
+            sendUpdates();
         }
 
     }
     public void stopSendLocations (View view){
+
+        Toast.makeText(this,"Location Updates Stopped", Toast.LENGTH_SHORT).show();
         locationManager.removeUpdates(locationListener);
-        Toast.makeText(this,"Location Updates Stopped", Toast.LENGTH_SHORT);
     }
 
     @Override

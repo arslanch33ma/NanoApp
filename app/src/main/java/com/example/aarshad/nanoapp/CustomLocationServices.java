@@ -142,7 +142,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         marker.setDraggable(true);
         marker.showInfoWindow();
 
-
+        currentMarker = marker ;
         previousMarker = marker ;
 
         final CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -151,7 +151,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 .bearing(90)                // Sets the orientation of the camera to east
                 .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                 .build();
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(1000, 1),null);
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(2500, 1),null);
 
         //map.setOnMarkerDragListener(this);
         map.setOnMapLongClickListener(this);
