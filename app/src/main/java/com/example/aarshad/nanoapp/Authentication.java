@@ -41,12 +41,10 @@ public class Authentication extends AppCompatActivity implements
 
     private GoogleApiClient mGoogleApiClient;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authentication);
-
 
         findViewById(R.id.sign_in_button).setOnClickListener(this);
 
@@ -126,7 +124,7 @@ public class Authentication extends AppCompatActivity implements
                 firebaseAuthWithGoogle(account);
 
             } else {
-                // Google Sign In failed, update things appropriately
+                // Google Sign In failed
                 updateUI(null);
 
             }
@@ -156,8 +154,8 @@ public class Authentication extends AppCompatActivity implements
                 });
     }
 
-
     private void signIn() {
+
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }

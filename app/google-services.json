@@ -1,21 +1,83 @@
 {
   "project_info": {
-    "project_number": "1053012400496",
-    "firebase_url": "https://nanoapp-9233b.firebaseio.com",
-    "project_id": "nanoapp-9233b",
-    "storage_bucket": "nanoapp-9233b.appspot.com"
+    "project_number": "128995248776",
+    "firebase_url": "https://scorching-heat-2364.firebaseio.com",
+    "project_id": "scorching-heat-2364",
+    "storage_bucket": "scorching-heat-2364.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1053012400496:android:179511184a590d56",
+        "mobilesdk_app_id": "1:128995248776:android:bc0a0196a909502e",
+        "android_client_info": {
+          "package_name": "com.firebase.sfvehicles"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128995248776-6rg7qpeqogmrahspnqq6149p6n07fafr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzgJnLODG626WjRLt-XBu4QaK4gLyVHUI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128995248776:android:08a95e88613b4f12",
+        "android_client_info": {
+          "package_name": "com.arakita.geolocationsample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128995248776-6rg7qpeqogmrahspnqq6149p6n07fafr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzgJnLODG626WjRLt-XBu4QaK4gLyVHUI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128995248776:android:179511184a590d56",
         "android_client_info": {
           "package_name": "com.example.aarshad.nanoapp"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1053012400496-085mf1dn8c4sovhfcr0d1b6kjhooe3ab.apps.googleusercontent.com",
+          "client_id": "128995248776-341hrs5b344j6is0vb6vo17acfi3pgne.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.aarshad.nanoapp",
@@ -23,13 +85,13 @@
           }
         },
         {
-          "client_id": "1053012400496-2c37l48nhu8dqjd6oin8o4taq6usgf43.apps.googleusercontent.com",
+          "client_id": "128995248776-6rg7qpeqogmrahspnqq6149p6n07fafr.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCWXrkJO_UZ-C9KRUx1cKyAJztIIkvenbA"
+          "current_key": "AIzaSyBzgJnLODG626WjRLt-XBu4QaK4gLyVHUI"
         }
       ],
       "services": {
@@ -40,7 +102,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "1053012400496-2c37l48nhu8dqjd6oin8o4taq6usgf43.apps.googleusercontent.com",
+              "client_id": "128995248776-6rg7qpeqogmrahspnqq6149p6n07fafr.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

@@ -121,12 +121,14 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         tvMarkerID = (TextView) view.findViewById(R.id.tvMarkerID);
 
         storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReferenceFromUrl("gs://nanoapp-9233b.appspot.com");
+        storageRef = storage.getReferenceFromUrl("gs://scorching-heat-2364.appspot.com");
 
         tsLong = System.currentTimeMillis();
         timeString = tsLong.toString();
 
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
+
+
 
     }
 
@@ -151,7 +153,17 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 .bearing(90)                // Sets the orientation of the camera to east
                 .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                 .build();
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(2500, 1),null);
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(2500, 1),new GoogleMap.CancelableCallback() {
+            @Override
+            public void onFinish() {
+               Toast.makeText(CustomLocationServices.this,"Put Markers by Long Click",Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+        });
 
         //map.setOnMarkerDragListener(this);
         map.setOnMapLongClickListener(this);
@@ -303,8 +315,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 // Setting the Bitmap to Marker Icon
                 currentMarker.setIcon(BitmapDescriptorFactory.fromBitmap(resizedBitmapImg));
 
-                addPicUrl(currentMarker);
-
                 // Uploading original file to firebase storage
                 uploadTask = imagesRef.putFile(file);
 
@@ -316,6 +326,8 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                        addPicUrl(currentMarker);
                         // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         // Toast.makeText(getApplicationContext(), "Uri: " + downloadUrl,Toast.LENGTH_LONG).show();

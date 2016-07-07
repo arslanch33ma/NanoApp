@@ -129,7 +129,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
 
         storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReferenceFromUrl("gs://nanoapp-9233b.appspot.com");
+        storageRef = storage.getReferenceFromUrl("gs://scorching-heat-2364.appspot.com");
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
@@ -238,8 +238,6 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 // Setting the Bitmap to Marker Icon
                 currentMarker.setIcon(BitmapDescriptorFactory.fromBitmap(resizedBitmapImg));
 
-                addPicUrl(currentMarker);
-
                 Log.v(TAG,"Image Uploaded");
                 // Uploading original file to firebase storage
                 uploadTask = imagesRef.putFile(file);
@@ -252,6 +250,8 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                        addPicUrl(currentMarker);
                         // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         // Toast.makeText(getApplicationContext(), "Uri: " + downloadUrl,Toast.LENGTH_LONG).show();
