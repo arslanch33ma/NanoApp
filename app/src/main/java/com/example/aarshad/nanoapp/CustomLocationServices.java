@@ -128,8 +128,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
 
-
-
     }
 
 
@@ -172,29 +170,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
     }
 
-//    @Override
-//    public void onMarkerDragStart(Marker marker) {
-//
-//    }
-//
-//    @Override
-//    public void onMarkerDrag(Marker marker) {
-//
-//    }
-//
-//    @Override
-//    public void onMarkerDragEnd(Marker marker) {
-//
-//        LatLng ltlng = marker.getPosition();
-//        marker.hideInfoWindow();
-//        marker.showInfoWindow();
-//
-//        currentMarker = marker ;
-//        notifyFirebase(ltlng,marker.getSnippet());
-//
-//        Toast.makeText(this,"Started Ended " + marker.getPosition() ,Toast.LENGTH_SHORT).show();
-//
-//    }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
