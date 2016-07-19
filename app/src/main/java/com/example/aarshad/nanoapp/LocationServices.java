@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -47,11 +49,13 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 
@@ -70,11 +74,12 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     Button btnSendLocation  ;
     Button btnStopLocation ;
+
     View view ;
+    TextView tvPostalCode;
+    TextView tvAddress;
     TextView tvLat ;
     TextView tvLng ;
-    TextView tvMarkerID ;
-    String markerID ;
 
     Long tsLong;
     String timeString;
@@ -83,6 +88,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     Date currentLocalTime ;
     DateFormat date ;
     String localTime ;
+
+    Geocoder geocoder;
+    List<Address> addresses;
 
     File destination;
     String imagePath;
@@ -121,10 +129,13 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
         tvLat = (TextView) view.findViewById(R.id.tv_lat);
         tvLng = (TextView) view.findViewById(R.id.tv_lng);
-        tvMarkerID = (TextView) view.findViewById(R.id.tvMarkerID);
+        tvAddress = (TextView) view.findViewById(R.id.tv_Address);
+        tvPostalCode = (TextView) view.findViewById(R.id.tv_postalCode);
 
         tsLong = System.currentTimeMillis();
         timeString = tsLong.toString();
+
+        geocoder = new Geocoder(this, Locale.getDefault());
 
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
 
@@ -282,6 +293,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         btnStopLocation = (Button) findViewById(R.id.btnStopLocation);
 
         gMap.setOnMarkerClickListener(this);
+        gMap.setInfoWindowAdapter(this);
 
         LocationManager lm = (LocationManager) getSystemService(
                 Context.LOCATION_SERVICE);
@@ -395,11 +407,21 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     public View getInfoContents(Marker marker) {
+
         LatLng latLng = marker.getPosition();
 
-        tvLat.setText("Lat: " +  latLng.latitude);
-        tvLng.setText("Lng: " + latLng.longitude);
-        tvMarkerID.setText("ID:" + marker.getId());
+        try {
+
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            tvPostalCode.setText("Postal Code: " + addresses.get(0).getPostalCode());
+            tvLat.setText("Lat: " +  latLng.latitude);
+            tvLng.setText("Lng: " + latLng.longitude);
+            tvAddress.setText("Address: " + addresses.get(0).getAddressLine(0));
+
+        } catch (IOException e) {
+            marker.hideInfoWindow();
+            e.printStackTrace();
+        }
 
         return view;
     }

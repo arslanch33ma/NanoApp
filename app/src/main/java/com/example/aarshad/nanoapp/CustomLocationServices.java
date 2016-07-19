@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -44,10 +46,13 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class CustomLocationServices extends AppCompatActivity implements OnMapReadyCallback,
@@ -68,6 +73,10 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
     Marker currentMarker ;
     Marker previousMarker ;
 
+    Geocoder geocoder;
+    List<Address> addresses;
+
+
     private static final int REQUEST_IMAGE = 100;
     public static final String MyPREFERENCES = "PREF" ;
     public static final String userID = "UserID";
@@ -87,9 +96,10 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
     String localTime ;
 
     View view ;
+    TextView tvPostalCode;
+    TextView tvAddress;
     TextView tvLat ;
     TextView tvLng ;
-    TextView tvMarkerID ;
 
     Long tsLong;
     String timeString;
@@ -118,13 +128,16 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
         tvLat = (TextView) view.findViewById(R.id.tv_lat);
         tvLng = (TextView) view.findViewById(R.id.tv_lng);
-        tvMarkerID = (TextView) view.findViewById(R.id.tvMarkerID);
+        tvAddress = (TextView) view.findViewById(R.id.tv_Address);
+        tvPostalCode = (TextView) view.findViewById(R.id.tv_postalCode);
 
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://scorching-heat-2364.appspot.com");
 
         tsLong = System.currentTimeMillis();
         timeString = tsLong.toString();
+
+        geocoder = new Geocoder(this, Locale.getDefault());
 
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
 
@@ -184,7 +197,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
         marker.setDraggable(true);
         marker.showInfoWindow();
 
-
         currentMarker = marker;
 
         map.addPolyline(new PolylineOptions()
@@ -194,6 +206,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 .color(Color.RED).geodesic(true));
 
         previousMarker = currentMarker ;
+
        notifyFirebase(latLng, marker.getSnippet());
 
     }
@@ -229,9 +242,19 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
         LatLng latLng = marker.getPosition();
 
-        tvLat.setText("Lat: " +  latLng.latitude);
-        tvLng.setText("Lng: " + latLng.longitude);
-        tvMarkerID.setText("ID:" + marker.getId());
+        try {
+
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            tvPostalCode.setText("Postal Code: " + addresses.get(0).getPostalCode());
+            tvLat.setText("Lat: " +  latLng.latitude);
+            tvLng.setText("Lng: " + latLng.longitude);
+            tvAddress.setText("Address: " + addresses.get(0).getAddressLine(0));
+
+        } catch (IOException e) {
+            marker.hideInfoWindow();
+            e.printStackTrace();
+        }
+
 
         return view;
     }
