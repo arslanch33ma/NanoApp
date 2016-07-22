@@ -32,6 +32,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -59,10 +65,12 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 
-public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener {
+public class LocationServices extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     Firebase fRef ;
     Firebase locationRef  ;
+
+    GoogleApiClient mGoogleApiClient;
 
     LocationManager locationManager;
     LocationListener locationListener;
@@ -98,6 +106,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     StorageReference storageRef ;
     Bitmap bitmapObj = null;
     Bitmap resizedBitmapImg ;
+    MyDBHandler dbHandler;
 
     private static final int REQUEST_IMAGE = 100;
     public static final String MyPREFERENCES = "PREF" ;
@@ -123,6 +132,12 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail().build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this,this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API,gso).build();
+
         sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
         signedInID = sharedpreferences.getString(userID,"");
 
@@ -137,7 +152,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
         geocoder = new Geocoder(this, Locale.getDefault());
 
+
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
+        dbHandler = new MyDBHandler(this, null, null, 1);
 
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://scorching-heat-2364.appspot.com");
@@ -173,7 +190,24 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
                 notifyFirebase(ltlng, marker.getSnippet());
 
+                insertIntoDb(ltlng);
+
             }
+
+            private void insertIntoDb(LatLng latlng) {
+
+                addresses = null ;
+
+                try {
+                    addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                LocationInfo locInfo = new LocationInfo(signedInID,String.valueOf(latlng.latitude),String.valueOf(latlng.longitude),addresses.get(0).getAddressLine(0));
+                dbHandler.insertLocation(locInfo);
+            }
+
             private void notifyFirebase(LatLng latLng , String mID) {
 
                 cal = Calendar.getInstance(TimeZone.getTimeZone("GMT+9:00"));
@@ -189,6 +223,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 locationRef.child(signedInID+"_"+mID).child("Uid").setValue(signedInID);
 
             }
+
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -222,10 +257,27 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
+            case R.id.menu_logout:
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                        new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+                                Toast.makeText(getApplicationContext(),"Logged out", Toast.LENGTH_LONG).show();
+                                Intent i = new Intent(getApplicationContext(), Authentication.class);
+                                startActivity(i);
+                                finishAffinity();
+                            }
+                        }
+                );
+                break;
             case R.id.action_camera:
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(destination));
                 startActivityForResult(intent, REQUEST_IMAGE);
+                break;
+            case R.id.action_history:
+                Intent intent_history = new Intent(this,History.class);
+                startActivity(intent_history);
                 break;
 
         }
@@ -432,5 +484,10 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         marker.showInfoWindow();
 
         return false;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.v(TAG,"Connection Failed");
     }
 }

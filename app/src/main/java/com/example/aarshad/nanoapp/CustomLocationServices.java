@@ -56,7 +56,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class CustomLocationServices extends AppCompatActivity implements OnMapReadyCallback,
-       // GoogleMap.OnMarkerDragListener,
         GoogleMap.OnMapLongClickListener, GoogleMap.InfoWindowAdapter, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
 
     Firebase fRef ;
@@ -75,12 +74,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
     Geocoder geocoder;
     List<Address> addresses;
-
-
-    private static final int REQUEST_IMAGE = 100;
-    public static final String MyPREFERENCES = "PREF" ;
-    public static final String userID = "UserID";
-    public static final String TAG = "nanoapp";
 
     SharedPreferences sharedPreferences ;
     String signedInID ;
@@ -103,6 +96,13 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
     Long tsLong;
     String timeString;
+
+    MyDBHandler dbHandler;
+
+    private static final int REQUEST_IMAGE = 100;
+    public static final String MyPREFERENCES = "PREF" ;
+    public static final String userID = "UserID";
+    public static final String TAG = "nanoapp";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +141,9 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
         destination = new File(Environment.getExternalStorageDirectory(), timeString + ".jpg");
 
+        dbHandler = new MyDBHandler(this, null, null, 1);
+
+
     }
 
 
@@ -176,7 +179,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
             }
         });
 
-        //map.setOnMarkerDragListener(this);
         map.setOnMapLongClickListener(this);
         map.setInfoWindowAdapter(this);
         map.setOnMarkerClickListener(this);
@@ -209,6 +211,22 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
        notifyFirebase(latLng, marker.getSnippet());
 
+        insertIntoDb(latLng);
+
+    }
+
+    private void insertIntoDb(LatLng latlng) {
+
+        addresses = null ;
+
+        try {
+            addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        LocationInfo locInfo = new LocationInfo(signedInID,String.valueOf(latlng.latitude),String.valueOf(latlng.longitude),addresses.get(0).getAddressLine(0));
+        dbHandler.insertLocation(locInfo);
     }
 
 
@@ -279,6 +297,12 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(destination));
                 startActivityForResult(intent, REQUEST_IMAGE);
                 break;
+
+            case R.id.action_history:
+                Intent intent_history = new Intent(this,History.class);
+                startActivity(intent_history);
+                break;
+
             case R.id.menu_logout:
                 Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
                         new ResultCallback<Status>() {
@@ -286,7 +310,10 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                             public void onResult(@NonNull Status status) {
                                 Toast.makeText(getApplicationContext(),"Logged out", Toast.LENGTH_LONG).show();
                                 Intent i = new Intent(getApplicationContext(), Authentication.class);
+                                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(i);
+                                finishAffinity();
+
                             }
                         }
                 );
@@ -354,6 +381,6 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.v(TAG,"Connection Failed");
     }
 }

@@ -48,15 +48,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                                 Toast.makeText(getApplicationContext(),"Logged out", Toast.LENGTH_LONG).show();
                                 Intent i = new Intent(getApplicationContext(), Authentication.class);
                                 startActivity(i);
+                                finishAffinity();
                             }
                         }
                 );
+
                 return true;
+
+            case R.id.action_history:
+                Intent intent_history = new Intent(this,History.class);
+                startActivity(intent_history);
+                return true;
+
 
             default:
                 return super.onOptionsItemSelected(item);
 
         }
+
     }
 
     public void locationServices(View view)
@@ -68,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     public void customLocationServices(View view){
         Intent customlocIntent = new Intent(this,CustomLocationServices.class);
         startActivity(customlocIntent);
+
     }
 
     @Override

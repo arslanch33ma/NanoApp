@@ -86,10 +86,10 @@ public class Authentication extends AppCompatActivity implements
 
     }
 
-    @Override
-    public void onBackPressed() {
-
-    }
+//    @Override
+//    public void onBackPressed() {
+//
+//    }
 
     @Override
     public void onStart() {
