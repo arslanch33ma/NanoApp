@@ -9,60 +9,47 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-            <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:text="Uid: "
-            style="@style/StyleLocationsListview"/>
-
-            <TextView
-            android:id="@+id/tv_uid"
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-             />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_gravity="center">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="20dp"
-            android:text="Lat: "
+            android:text="Username: "
             style="@style/StyleLocationsListview"/>
 
         <TextView
-        android:id="@+id/tv_lat"
-        android:layout_width="wrap_content"
-        android:layout_height="20dp" />
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-            <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:text="Lng: "
-            style="@style/StyleLocationsListview"/>
-
-            <TextView
-            android:id="@+id/tv_lng"
+            android:id="@+id/tv_historyUsername"
             android:layout_width="wrap_content"
             android:layout_height="20dp"/>
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="Time: "
+            style="@style/StyleLocationsListview"/>
+
+        <TextView
+            android:id="@+id/tv_historyTime"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
 
         <TextView
             android:layout_width="wrap_content"
@@ -75,6 +62,48 @@
             android:layout_width="wrap_content"
             android:layout_height="20dp"/>
     </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="Lat: "
+            style="@style/StyleLocationsListview" />
+
+        <TextView
+        android:id="@+id/tv_historyLat"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:visibility="gone">
+
+            <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:text="Lng: "
+            style="@style/StyleLocationsListview"/>
+
+            <TextView
+            android:id="@+id/tv_historyLng"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"/>
+    </LinearLayout>
+
+
 
 
 </LinearLayout>

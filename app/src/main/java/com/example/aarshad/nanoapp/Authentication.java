@@ -1,5 +1,6 @@
 package com.example.aarshad.nanoapp;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -41,6 +42,8 @@ public class Authentication extends AppCompatActivity implements
 
     private GoogleApiClient mGoogleApiClient;
 
+    ProgressDialog progDailog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +66,7 @@ public class Authentication extends AppCompatActivity implements
                 .build();
 
         mAuth = FirebaseAuth.getInstance();
+        progDailog = new ProgressDialog(Authentication.this);
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -86,10 +90,6 @@ public class Authentication extends AppCompatActivity implements
 
     }
 
-//    @Override
-//    public void onBackPressed() {
-//
-//    }
 
     @Override
     public void onStart() {
@@ -114,6 +114,12 @@ public class Authentication extends AppCompatActivity implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        progDailog.setMessage("Checking Credentials ...");
+        progDailog.setIndeterminate(true);
+        progDailog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progDailog.setCancelable(true);
+        progDailog.show();
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -145,9 +151,11 @@ public class Authentication extends AppCompatActivity implements
                         // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
+                            progDailog.dismiss();
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(Authentication.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+
                         }
 
                     }
@@ -158,6 +166,7 @@ public class Authentication extends AppCompatActivity implements
 
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
+
     }
 
 
@@ -194,7 +203,9 @@ public class Authentication extends AppCompatActivity implements
 
             Toast.makeText(this, "UserID: " + user.getUid(), Toast.LENGTH_SHORT).show();
             editor.putString("UserID", user.getUid());
+            editor.putString("UserName", user.getDisplayName());
             editor.commit();
+            progDailog.dismiss();
             Intent mainActivity = new Intent(this,MainActivity.class);
             startActivity(mainActivity);
 
@@ -212,10 +223,13 @@ public class Authentication extends AppCompatActivity implements
     }
 
 
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_in_button:
+
+
                 signIn();
                 break;
 

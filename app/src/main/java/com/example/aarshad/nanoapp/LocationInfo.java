@@ -7,19 +7,24 @@ public class LocationInfo {
 
     private int _id;
     private String _uid;
+    private String _name;
     private String _lat;
     private String _lng;
     private String _address;
+    private String _time;
 
 
     public LocationInfo(){
     }
 
-    public LocationInfo(String uid, String lat, String lng, String address){
+    public LocationInfo(String uid, String name, String lat, String lng, String address, String time){
         this._uid = uid;
+        this._name = name;
         this._lat = lat;
         this._lng = lng;
         this._address = address;
+        this._time = time;
+
 
     }
 
@@ -33,6 +38,14 @@ public class LocationInfo {
 
     public int get_id() {
         return _id;
+    }
+
+    public String get_name() {
+        return _name;
+    }
+
+    public void set_name(String _name) {
+        this._name = _name;
     }
 
     public String get_uid() {
@@ -52,7 +65,6 @@ public class LocationInfo {
     }
 
     public void set_lng(String _lng) {
-
         this._lng = _lng;
     }
 
@@ -61,7 +73,14 @@ public class LocationInfo {
     }
 
     public void set_address(String _address) {
-
         this._address = _address;
+    }
+
+    public String get_time() {
+        return _time;
+    }
+
+    public void set_time(String _time) {
+        this._time = _time;
     }
 }

@@ -11,14 +11,16 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class MyDBHandler extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7;
     private static final String DATABASE_NAME = "productDB.db";
     public static final String TABLE_LOCATIONS = "locations";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_UID = "uid";
+    public static final String COLUMN_NAME = "name";
     public static final String COLUMN_LAT = "lat";
     public static final String COLUMN_LNG = "lng";
     public static final String COLUMN_ADDRESS = "address";
+    public static final String COLUMN_TIME = "time";
 
     //We need to pass database information along to superclass
     public MyDBHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -30,9 +32,11 @@ public class MyDBHandler extends SQLiteOpenHelper {
         String query = "CREATE TABLE " + TABLE_LOCATIONS + "(" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_UID + " TEXT, " +
+                COLUMN_NAME + " TEXT, " +
                 COLUMN_LAT + " TEXT, " +
                 COLUMN_LNG + " TEXT, " +
-                COLUMN_ADDRESS + " TEXT " +
+                COLUMN_ADDRESS + " TEXT, " +
+                COLUMN_TIME + " TEXT " +
                 ");";
         db.execSQL(query);
     }
@@ -47,16 +51,18 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public void insertLocation(LocationInfo locationInfo){
         ContentValues values = new ContentValues();
         values.put(COLUMN_UID, locationInfo.get_uid());
+        values.put(COLUMN_NAME, locationInfo.get_name());
         values.put(COLUMN_LAT, locationInfo.get_lat());
         values.put(COLUMN_LNG, locationInfo.get_lng());
         values.put(COLUMN_ADDRESS,locationInfo.get_address());
+        values.put(COLUMN_TIME,locationInfo.get_time());
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_LOCATIONS, null, values);
         db.close();
     }
 
     //Delete a product from the database
-    public void deleteProduct(String uid){
+    public void deleteData(String uid){
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_LOCATIONS + " WHERE " + COLUMN_UID + "=\"" + uid + "\";");
     }
@@ -97,6 +103,16 @@ public class MyDBHandler extends SQLiteOpenHelper {
         return c;
 
     }
+    public Cursor getData(String signedInID){
+        SQLiteDatabase db = getWritableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_LOCATIONS + " WHERE " + COLUMN_UID + "=\"" + signedInID + "\";" ;
+
+        Cursor c = db.rawQuery(query,null);
+
+        return c;
+    }
+
 
 
 

@@ -2,10 +2,12 @@ package com.example.aarshad.nanoapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -15,6 +17,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -75,10 +78,12 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     LocationManager locationManager;
     LocationListener locationListener;
     String signedInID ;
+    String signedInName;
 
     GoogleMap gMap;
     Marker currentMarker ;
     Marker previousMarker ;
+    CameraPosition cameraPosition;
 
     Button btnSendLocation  ;
     Button btnStopLocation ;
@@ -86,11 +91,18 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     View view ;
     TextView tvPostalCode;
     TextView tvAddress;
-    TextView tvLat ;
-    TextView tvLng ;
+    TextView tvTime ;
+    TextView tvName ;
+
+    MarkerOptions markerOptions;
+    Marker marker;
 
     Long tsLong;
     String timeString;
+    double lat;
+    double lng;
+    LatLng latlngDb ;
+    LatLng newPosition;
 
     Calendar cal ;
     Date currentLocalTime ;
@@ -107,13 +119,18 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     Bitmap bitmapObj = null;
     Bitmap resizedBitmapImg ;
     MyDBHandler dbHandler;
+    Cursor c;
+    ProgressDialog progDailog;
 
     private static final int REQUEST_IMAGE = 100;
     public static final String MyPREFERENCES = "PREF" ;
     public static final String userID = "UserID";
+    public static final String userName = "UserName";
+    public static final String CONTENTS_STATUS = "MapContents";
     public static final String TAG = "NanoApp";
 
     SharedPreferences sharedpreferences;
+    SharedPreferences.Editor editor ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,10 +157,12 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
         sharedpreferences = getSharedPreferences(MyPREFERENCES,Context.MODE_PRIVATE);
         signedInID = sharedpreferences.getString(userID,"");
+        signedInName = sharedpreferences.getString(userName,"");
+        editor = sharedpreferences.edit();
 
         view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
-        tvLat = (TextView) view.findViewById(R.id.tv_lat);
-        tvLng = (TextView) view.findViewById(R.id.tv_lng);
+        tvTime = (TextView) view.findViewById(R.id.tv_time);
+        tvName = (TextView) view.findViewById(R.id.tv_username);
         tvAddress = (TextView) view.findViewById(R.id.tv_Address);
         tvPostalCode = (TextView) view.findViewById(R.id.tv_postalCode);
 
@@ -171,12 +190,17 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                 tsLong = System.currentTimeMillis();
                 timeString = tsLong.toString();
 
-                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions = new MarkerOptions();
                 markerOptions.position(ltlng).snippet(timeString);
 
-                Marker marker = gMap.addMarker(markerOptions);
+                marker = gMap.addMarker(markerOptions);
                 marker.setDraggable(true);
                 marker.showInfoWindow();
+
+                cameraPosition = new CameraPosition.Builder()
+                        .target(ltlng).zoom(15).bearing(0).tilt(30).build();
+
+                gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(1000, 1),null);
 
                 currentMarker = marker;
 
@@ -187,6 +211,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                         .color(Color.RED).geodesic(true));
 
                 previousMarker = currentMarker ;
+
+                editor.putString(CONTENTS_STATUS, "Contents");
+                editor.commit();
 
                 notifyFirebase(ltlng, marker.getSnippet());
 
@@ -204,7 +231,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
                     e.printStackTrace();
                 }
 
-                LocationInfo locInfo = new LocationInfo(signedInID,String.valueOf(latlng.latitude),String.valueOf(latlng.longitude),addresses.get(0).getAddressLine(0));
+                LocationInfo locInfo = new LocationInfo(signedInID,signedInName,String.valueOf(latlng.latitude),String.valueOf(latlng.longitude),addresses.get(0).getAddressLine(0),localTime);
                 dbHandler.insertLocation(locInfo);
             }
 
@@ -247,6 +274,21 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             }
         };
 
+    }
+    @Override
+    protected void onResume() {
+        String contentsStatus = sharedpreferences.getString(CONTENTS_STATUS,"");
+        if (contentsStatus == "Clear"){
+            if (gMap!=null) {
+                gMap.clear();
+            }
+        }
+        super.onResume();
+    }
+    @Override
+    protected void onPause() {
+        progDailog.dismiss();
+        super.onPause();
     }
 
     @Override
@@ -340,6 +382,14 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap map) {
 
+        progDailog = new ProgressDialog(LocationServices.this);
+        progDailog.setMessage("Loading ...");
+        progDailog.setIndeterminate(true);
+        progDailog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progDailog.setCancelable(true);
+        progDailog.show();
+
+
         gMap = map ;
         btnSendLocation = (Button) findViewById(R.id.btnSendLocation);
         btnStopLocation = (Button) findViewById(R.id.btnStopLocation);
@@ -367,7 +417,6 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             pLtLng = new LatLng(gps[0], gps[1]);
         }
 
-
         if (pLtLng!=null) {
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(pLtLng).snippet(timeString);
@@ -378,17 +427,18 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
             previousMarker = marker ;
 
-            final CameraPosition cameraPosition = new CameraPosition.Builder()
+            cameraPosition = new CameraPosition.Builder()
                     .target(pLtLng)      // Sets the center of the map to Mountain View
                     .zoom(13)                   // Sets the zoom
-                    .bearing(90)                // Sets the orientation of the camera to east
+                    .bearing(0)                // Sets the orientation of the camera to east
                     .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                     .build();
-            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(2500, 1), new GoogleMap.CancelableCallback() {
+            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(1000, 1), new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
                     btnSendLocation.setVisibility(View.VISIBLE);
                     btnStopLocation.setVisibility(View.VISIBLE);
+                    new LoadData().execute();
                 }
 
                 @Override
@@ -400,9 +450,61 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         else {
             btnSendLocation.setVisibility(View.VISIBLE);
             btnStopLocation.setVisibility(View.VISIBLE);
+            progDailog.hide();
         }
 
     }
+
+    class LoadData extends AsyncTask<Integer, Integer, String> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+        @Override
+        protected String doInBackground(Integer... params) {
+            c = dbHandler.getData(signedInID);
+            return "Task Completed.";
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            if (c.getCount()>0){
+                c.moveToFirst();
+                while (!c.isAfterLast()) {
+                    if (c.getString(c.getColumnIndex("uid")) != null) {
+                        lat = Double.parseDouble(c.getString(c.getColumnIndex("lat")));
+                        lng = Double.parseDouble(c.getString(c.getColumnIndex("lng")));
+                        latlngDb = new LatLng(lat,lng);
+                        markerOptions = new MarkerOptions();
+                        markerOptions.position(latlngDb);
+
+                        marker = gMap.addMarker(markerOptions);
+                        marker.setDraggable(true);
+                        marker.showInfoWindow();
+                        currentMarker = marker;
+
+                        gMap.addPolyline(new PolylineOptions()
+                                .add(new LatLng(previousMarker.getPosition().latitude, previousMarker.getPosition().longitude),
+                                        new LatLng(currentMarker.getPosition().latitude, currentMarker.getPosition().longitude))
+                                .width(5)
+                                .color(Color.RED).geodesic(true));
+
+                        previousMarker = currentMarker ;
+                    }
+                    c.moveToNext();
+                }
+
+            }
+            progDailog.hide();
+            newPosition = new LatLng(previousMarker.getPosition().latitude, previousMarker.getPosition().longitude);
+            cameraPosition = new CameraPosition.Builder()
+                    .target(newPosition).zoom(15) .bearing(0).tilt(30).build();
+
+            gMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), Math.max(1000, 1),null);
+        }
+
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -465,9 +567,9 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         try {
 
             addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            tvName.setText("User Name: " + signedInName);
+            tvTime.setText("Locality/Ward: " +  addresses.get(0).getLocality());
             tvPostalCode.setText("Postal Code: " + addresses.get(0).getPostalCode());
-            tvLat.setText("Lat: " +  latLng.latitude);
-            tvLng.setText("Lng: " + latLng.longitude);
             tvAddress.setText("Address: " + addresses.get(0).getAddressLine(0));
 
         } catch (IOException e) {

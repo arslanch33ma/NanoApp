@@ -31,12 +31,15 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".LocationServices"
             android:screenOrientation="portrait" />
         <activity android:name=".CustomLocationServices" />
-        <activity android:name=".History"></activity>
+        <activity
+            android:name=".History"
+            android:label="Locations History"></activity>
+        <activity android:name=".HistoryLocationShow"></activity>
     </application>
 
 </manifest>
