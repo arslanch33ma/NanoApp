@@ -59,6 +59,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 Intent intent_history = new Intent(this,History.class);
                 startActivity(intent_history);
                 return true;
+            case R.id.action_settings:
+                Intent intent_settings = new Intent(this,Settings.class);
+                startActivity(intent_settings);
+                return true;
 
 
             default:

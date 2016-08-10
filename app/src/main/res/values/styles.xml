@@ -15,7 +15,7 @@
         <item name="android:layout_height">60dp</item>
         <item name="android:layout_gravity">center</item>
         <item name="android:textColor">#FFFF</item>
-        <item name="android:layout_margin">5dp</item>
+        <item name="android:layout_margin">10dp</item>
 
     </style>
     <style name="StyleLocationsListview" parent="Theme.AppCompat.Light.DarkActionBar">

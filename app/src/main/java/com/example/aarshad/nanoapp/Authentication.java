@@ -131,8 +131,8 @@ public class Authentication extends AppCompatActivity implements
 
             } else {
                 // Google Sign In failed
+                progDailog.hide();
                 updateUI(null);
-
             }
         }
     }
@@ -201,7 +201,7 @@ public class Authentication extends AppCompatActivity implements
     private void updateUI(FirebaseUser user) {
         if (user != null) {
 
-            Toast.makeText(this, "UserID: " + user.getUid(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Username: " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
             editor.putString("UserID", user.getUid());
             editor.putString("UserName", user.getDisplayName());
             editor.commit();

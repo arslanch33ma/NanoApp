@@ -33,10 +33,6 @@
             android:layout_weight="1"
             android:text="@string/btnCustomLocationsName"
             android:onClick="customLocationServices"/>
-        <Button
-            style="@style/StyleButtons"
-            android:layout_weight="1"
-            android:text="Service (Not Added)"/>
 
     </LinearLayout>
 

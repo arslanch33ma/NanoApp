@@ -350,7 +350,7 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
 
         try {
 
-            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 3);
 
             tvName.setText("Username: " + signedInName);
             tvTime.setText("Locality/Ward: " +  addresses.get(0).getLocality());
@@ -427,6 +427,11 @@ public class CustomLocationServices extends AppCompatActivity implements OnMapRe
                         }
                 );
                 break;
+            case R.id.action_settings:
+                Intent intent_settings = new Intent(this,Settings.class);
+                startActivity(intent_settings);
+                break;
+
         }
         return true ;
     }

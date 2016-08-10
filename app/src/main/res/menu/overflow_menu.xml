@@ -12,6 +12,11 @@
             android:title=""
             app:showAsAction="always"  />
 
+        <item android:id="@+id/action_settings"
+            android:icon="@drawable/history_material"
+            android:title="Settings"
+            app:showAsAction="never"  />
+
         <item
             android:id="@+id/menu_logout"
             android:orderInCategory="100"

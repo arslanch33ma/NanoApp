@@ -38,8 +38,9 @@
         <activity android:name=".CustomLocationServices" />
         <activity
             android:name=".History"
-            android:label="Locations History"></activity>
-        <activity android:name=".HistoryLocationShow"></activity>
+            android:label="Locations History" />
+        <activity android:name=".HistoryLocationShow" />
+        <activity android:name=".Settings"></activity>
     </application>
 
 </manifest>

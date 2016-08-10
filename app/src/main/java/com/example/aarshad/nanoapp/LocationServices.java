@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -131,6 +132,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
 
     SharedPreferences sharedpreferences;
     SharedPreferences.Editor editor ;
+    SharedPreferences prefSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +161,7 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         signedInID = sharedpreferences.getString(userID,"");
         signedInName = sharedpreferences.getString(userName,"");
         editor = sharedpreferences.edit();
+        prefSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
         view = getLayoutInflater().inflate(R.layout.info_window_layout,null);
         tvTime = (TextView) view.findViewById(R.id.tv_time);
@@ -320,6 +323,10 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
             case R.id.action_history:
                 Intent intent_history = new Intent(this,History.class);
                 startActivity(intent_history);
+                break;
+            case R.id.action_settings:
+                Intent intent_settings = new Intent(this, com.example.aarshad.nanoapp.Settings.class);
+                startActivity(intent_settings);
                 break;
 
         }
@@ -517,8 +524,17 @@ public class LocationServices extends AppCompatActivity implements OnMapReadyCal
         }
     }
     private void sendUpdates() {
+
+        String value = prefSettings.getString(getString(R.string.location_duration),"20");
+        int interval = Integer.parseInt(value);
+        if (interval<1){
+            interval = 20000;
+            Toast.makeText(LocationServices.this,"Interval < 1 (Set to Default 20 sec) ",Toast.LENGTH_LONG).show();
+        } else {
+            interval = interval * 1000;
+        }
         Toast.makeText(LocationServices.this,"Looking for GPS Signals ... ",Toast.LENGTH_LONG).show();
-        locationManager.requestLocationUpdates("gps", 20000, 1, locationListener);
+        locationManager.requestLocationUpdates("gps", interval, 1, locationListener);
 
     }
 
